@@ -1,1 +1,1 @@
-# hex_coordinates
+# Hexagon Grid Coordinates
