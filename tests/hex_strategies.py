@@ -1,13 +1,14 @@
 from hypothesis.strategies import integers, sampled_from, composite
 
-from hex_coordinates import Hexagon as H
-from hex_coordinates.hex_enums import HexDirection as HD, VertexDirection as VD
+from hex_grid import Hexagon as H
+from hex_grid.hex_enums import HexDirection as HD, VertexDirection as VD
 
 
 @composite
 def hex_directions(draw):
     d = draw(sampled_from([HD.right, HD.left, HD.top_right, HD.bottom_right, HD.top_left, HD.bottom_left]))
     return d
+
 
 @composite
 def vertex_directions(draw):

@@ -3,13 +3,13 @@ from hypothesis import given
 from hypothesis.strategies import integers, floats, sampled_from
 from .hex_strategies import hexagons
 
-from hex_coordinates import (
+from hex_grid import (
     Hexagon as H,
     HexDirection as HD,
 )
 
-from hex_coordinates.hexagon import SLICE
-from hex_coordinates.grid_factory import get_neighbour_step
+from hex_grid.hexagon import SLICE
+from hex_grid.grid_factory import get_neighbour_step
 
 
 @given(integers(), integers())
