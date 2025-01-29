@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-
 from .hex_edge import HexagonEdge
 from .hex_vertex import HexagonVertex
 from .hex_enums import HexDirection, VertexDirection
 from .hex_grid_points import HexGridPoint
-from .grid_factory import EdgeFactory, NeighbourFactory, VertexFactory
+from .hex_grid_directions import get_neighbour_step
 
 
 """
@@ -16,18 +15,7 @@ SLICE = 0
 
 @dataclass
 class Hexagon():
-
     point: HexGridPoint
-
-    def __init__(self, r, s, t=None):
-
-        if t is None:
-            t = SLICE - r - s
-        else:
-            if r + s + t != SLICE:
-                raise ValueError("wrong slice: {r+s+t} != {SLICE}")
-
-        self.point = HexGridPoint(r, s, t)
 
     def __hash__(self):
         return hash(self.get_rst())
@@ -35,42 +23,37 @@ class Hexagon():
     def get_rst(self):
         return self.point.get_rst()
 
-    def __neg__(self):
-        r, s, t = self.get_rst()
-        return self.__class__(-r, -s, -t)
+    def __add__(self, other: "Hexagon"):
+        if isinstance(other, Hexagon):
+            return self.__class__(self.point + other.point)
+        elif isinstance(other, HexGridPoint):
+            return self.__class__(self.point + other)
+        raise TypeError
 
-    def __add__(self, other):
-        r1, s1, t1 = self.get_rst()
-        r2, s2, t2 = other.get_rst()
-
-        return self.__class__(r1+r2, s1+s2, t1+t2)
-
-    def __sub__(self, other):
-        return self + (-other)
+    def __sub__(self, other: "Hexagon"):
+        if isinstance(other, Hexagon):
+            return self.__class__(self.point - other.point)
+        elif isinstance(other, HexGridPoint):
+            return self.__class__(self.point - other)
+        raise TypeError
 
     def __mul__(self, other: int):
         if isinstance(other, int):
-            r, s, t = self.get_rst()
-            return self.__class__(r*other, s*other, t*other)
+            return self.__class__(self.point * other)
         raise TypeError("unsupported operand type")
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: int):
         return self.__mul__(other)
 
-    def distance(self, other):
-        r1, s1, t1 = self.get_rst()
-        r2, s2, t2 = other.get_rst()
-
-        return sum([
-            abs(r1 - r2),
-            abs(s1 - s2),
-            abs(t1 - t2)
-        ]) / 2.
+    def distance(self, other: "Hexagon"):
+        if isinstance(other, Hexagon):
+            return self.point.distance(other.point)
+        raise TypeError
 
     # neighbours
     def neighbour(self, direction: HexDirection) -> "Hexagon":
-        point = NeighbourFactory(self.point)(direction)
-        return self.__class__(*point.get_rst())
+        step = get_neighbour_step(direction)
+        return self.__class__(self.point + step)
 
     def right(self):
         return self.neighbour(HexDirection.right)
@@ -92,7 +75,7 @@ class Hexagon():
 
     # edges
     def edge(self, direction: HexDirection) -> HexagonEdge:
-        return EdgeFactory(self.point)(direction)
+        return HexagonEdge(self.point, direction)
 
     def right_edge(self):
         return self.edge(HexDirection.right)
@@ -114,7 +97,7 @@ class Hexagon():
 
     # vertices
     def vertex(self, direction: VertexDirection) -> HexagonVertex:
-        return VertexFactory(self.point)(direction)
+        return HexagonVertex(self.point, direction)
 
     def top_vertex(self):
         return self.vertex(VertexDirection.top)

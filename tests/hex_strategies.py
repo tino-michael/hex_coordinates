@@ -1,6 +1,7 @@
 from hypothesis.strategies import integers, sampled_from, composite
 
 from hex_grid import Hexagon as H
+from hex_grid.hex_grid_points import HexGridPoint as HP
 from hex_grid.hex_enums import HexDirection as HD, VertexDirection as VD
 
 
@@ -17,6 +18,13 @@ def vertex_directions(draw):
 
 
 @composite
+def hex_grid_points(draw):
+    h = HP(draw(integers(min_value=-20, max_value=20)), draw(integers(min_value=-20, max_value=20)))
+    return h
+
+
+@composite
 def hexagons(draw):
-    h = H(draw(integers(min_value=-20, max_value=20)), draw(integers(min_value=-20, max_value=20)))
+    p = HP(draw(integers(min_value=-20, max_value=20)), draw(integers(min_value=-20, max_value=20)))
+    h = H(p)
     return h

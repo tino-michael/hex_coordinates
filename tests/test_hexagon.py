@@ -4,56 +4,20 @@ from hypothesis.strategies import integers, floats, sampled_from
 from .hex_strategies import hexagons
 
 from hex_grid import (
-    Hexagon as H,
     HexDirection as HD,
 )
 
-from hex_grid.hexagon import SLICE
-from hex_grid.grid_factory import get_neighbour_step
-
-
-@given(integers(), integers())
-def test_hexagon(a, b):
-    assert H(a, b) == H(a, b, SLICE-a-b)
-
-
-@given(integers(), integers(), integers(), integers())
-def test_hexagon_addition(a, b, x, y):
-    assert H(a, b) + H(x, y) == H(a+x, b+y)
-
-
-@given(integers(), integers(), integers(), integers())
-def test_hexagon_subtraction(a, b, x, y):
-    assert H(a, b) - H(x, y) == H(a-x, b-y)
-
-
-@given(integers(), integers(), integers())
-def test_hexagon_multiplication_integer(a, b, c):
-    assert H(a, b) * c == H(a*c, b*c)
-    assert a * H(b, c) == H(a*b, a*c)
-
-
-@given(integers(), integers(), integers(), integers())
-def test_hexagon_multiplication_hexagon(a, b, x, y):
-    with pytest.raises(TypeError):
-        H(a, b) * H(x, y)
-
-
-@given(integers(), integers(), floats())
-def test_hexagon_multiplication_float(a, b, c):
-    with pytest.raises(TypeError):
-        H(a, b) * c
+from hex_grid.hex_grid_directions import get_neighbour_step
 
 
 @given(
+    hexagons(),
     sampled_from([
         "right", "left",
         "top_right", "bottom_right",
         "top_left", "bottom_left"]))
-def test_hexagon_neighbour_distance(d):
-    h1 = H(0, 0)
+def test_hexagon_neighbour_distance(h1, d):
     h2 = h1.neighbour(HD[d])
-
     assert h1.distance(h2) == h2.distance(h1) == 1
 
 
@@ -109,13 +73,14 @@ def test_one_over(h):
 
 
 @given(
+    hexagons(),
     integers(min_value=2, max_value=10),
     sampled_from([
         "right", "left",
         "top_right", "bottom_right",
         "top_left", "bottom_left"]))
-def test_hexagon_straight_distance(i, d):
-    h1 = h2 = H(0, 0)
+def test_hexagon_straight_distance(h1, i, d):
+    h2 = h1
     for _ in range(i):
         h2 = h2.neighbour(HD[d])
 
@@ -141,3 +106,20 @@ def test_hexagon_direction_by_enum(h, hd):
         "top_left", "bottom_left"]))
 def test_hexagon_neighbour_by_attr(h, d):
     getattr(h, d)() == h.neighbour(HD[d])
+
+
+@given(hexagons(), integers())
+def test_hexagon_point_multiplication_integer(h, i):
+    h * i
+
+
+@given(hexagons(), floats())
+def test_hexagon_point_multiplication_float(h, f):
+    with pytest.raises(TypeError):
+        h * f
+
+
+@given(hexagons(), hexagons())
+def test_hexagon_point_multiplication_hexagon(h1, h2):
+    with pytest.raises(TypeError):
+        h1 * h2

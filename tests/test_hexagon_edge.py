@@ -1,23 +1,26 @@
 from hypothesis import given
-from hypothesis.strategies import integers, sampled_from
+from hypothesis.strategies import sampled_from
 
-from hex_coordinates import (
-    Hexagon as H,
-    HexagonEdge as E,
-    HexDirection as HD
+from .hex_strategies import hexagons, hex_directions
+
+from hex_grid import (
+    HexDirection as HD,
+    HexagonEdge as E
 )
 
 
-@given(integers(), integers(), sampled_from([HD.right, HD.top_right, HD.bottom_right]))
-def test_hexagon_edge(a, b, i):
-    assert H(a,b).edge(i) == E(H(a,b).point, i)
+@given(hexagons(), hex_directions())
+def test_hexagon_edge(h, d):
+    assert h.edge(d) == E(h.point, d)
 
-@given(integers(), integers(),
+
+@given(
+    hexagons(),
     sampled_from([
         "right", "left",
         "top_right", "bottom_right",
         "top_left", "bottom_left"]))
-def test_hexagon_edge_neighbour(a, b, d):
+def test_hexagon_edge_neighbour(h, d):
 
     c = ""
     if "right" in d:
@@ -30,4 +33,15 @@ def test_hexagon_edge_neighbour(a, b, d):
     elif "top" in d:
         c = c.replace("top", "bottom")
 
-    assert H(a, b).edge(HD[d]) == H(a, b).neighbour(HD[d]).edge(HD[c])
+    assert h.edge(HD[d]) == h.neighbour(HD[d]).edge(HD[c])
+
+
+@given(
+    hexagons(),
+    sampled_from([
+        "right", "left",
+        "top_right", "bottom_right",
+        "top_left", "bottom_left"]))
+def test_hexagon_edge_distant(h, d):
+
+    assert h.edge(HD[d]) != h.neighbour(HD[d]).edge(HD[d])
